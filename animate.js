@@ -1,7 +1,8 @@
 (function () {
 	'use strict';
 
-	var tasks = [];
+	var tasks = [],
+		lastTimeStamp = null;
 
 	var scheduler = {
 
@@ -9,6 +10,9 @@
 			var idx = tasks.indexOf(task);
 			if (idx === -1) {
 				tasks.push(task);
+				if (!lastTimeStamp) {
+					lastTimeStamp = performance.now();
+				}
 			}
 			scheduler.scheduleNext();
 		},
@@ -24,108 +28,118 @@
 			if (tasks.length) {
 				requestAnimationFrame(scheduler.update);
 			}
+			else {
+				lastTimeStamp = null;
+			}
 		},
 
 		update: function () {
 			var i = 0,
 				n = tasks.length,
-				timeStamp = performance.now();
+				timeStamp = performance.now(),
+				dt = timeStamp - lastTimeStamp;
 
 			for (; i < n; ++i) {
-				tasks[i].update(timeStamp);
+				tasks[i].update(dt);
 			}
 
+			lastTimeStamp = timeStamp;
 			scheduler.scheduleNext();
 		}
 	};
 
 	function Task() {
-
-		var lastTimeStamp = null,
+		var doneFilters = [],
+			progressFilters = [],
+			task = this,
 			elapsed = 0,
+			delay = 0,
+			iterationCount = 0,
+			iterationTotal = 0,
 			promise = {
 
-			update: function (timeStamp) {
-				elapsed += timeStamp - lastTimeStamp;
-				lastTimeStamp = timeStamp;
-				// todo
-				return promise;
-			},
+				start: function (ms) {
+					elapsed = ms || 0;
+					iterationCount = 0;
+					scheduler.add(task);
+					// todo state
+					return promise;
+				},
 
-			start: function (ms) {
-				elapsed = ms || 0;
-				lastTimeStamp = performance.now();
-				scheduler.add(promise);
-				// todo
-				return promise;
-			},
+				stop: function () {
+					scheduler.remove(task);
+					return promise;
+				},
 
-			stop: function () {
-				// todo
-				scheduler.remove(promise);
-				return promise;
-			},
+				jump: function (ms) {
+					elapsed = ms;
+					// todo state
+					return promise;
+				},
 
-			jump: function () {
-				// todo
-				return promise;
-			},
+				delay: function (ms) {
+					delay = ms;
+					return promise;
+				},
 
-			delay: function () {
-				// todo
-				return promise;
-			},
+				done: function (doneFilter) {
+					doneFilters.push(doneFilter);
+					return promise;
+				},
 
-			done: function () {
-				// todo
-				return promise;
-			},
+				progress: function (progressFilter) {
+					progressFilters.push(progressFilter);
+					return promise;
+				},
 
-			progress: function () {
-				// todo
-				return promise;
-			},
+				repeat: function (iterations) {
+					iterationTotal = iterations;
+					return promise;
+				}
 
-			repeat: function (iterations) {
-				// todo
-				return promise;
-			}
+			};
 
+		task.promise = promise;
+
+		task.update = function(dt) {
+			elapsed += dt;
+			// todo state
 		};
-
-		return promise;
 	}
 
 	var animate = function (obj) {
 
-		var t = Task();
+		var t = new Task(),
+			promise = t.promise;
 
-		t.from = function () {
+		promise.from = function () {
 			// todo
-			return t;
+			return promise;
 		};
 
-		t.to = function () {
+		promise.to = function () {
 			// todo
-			return t;
+			return promise;
 		};
 
-		t.using = function () {
+		promise.using = function () {
 			// todo
-			return t;
+			return promise;
 		};
 
-		return t;
+		return promise;
 	};
 
 	animate.sequence = function (subordinate /* , ..., subordinateN */) {
 		// todo
-		return Task();
+		var t = new Task();
+		return t.promise;
 	};
 
 	animate.group = function (subordinate /* , ..., subordinateN */) {
 		// todo
-		return Task();
+		var t = new Task();
+		return t.promise;
 	};
 
 	animate.easing = {
