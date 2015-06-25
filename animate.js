@@ -26,21 +26,21 @@
 
 		scheduleNext: function () {
 			if (tasks.length) {
-				requestAnimationFrame(scheduler.update);
+				requestAnimationFrame(scheduler.step);
 			}
 			else {
 				lastTimeStamp = null;
 			}
 		},
 
-		update: function () {
+		step: function () {
 			var i = 0,
 				n = tasks.length,
 				timeStamp = performance.now(),
 				dt = timeStamp - lastTimeStamp;
 
 			for (; i < n; ++i) {
-				tasks[i].update(dt);
+				tasks[i].step(dt);
 			}
 
 			lastTimeStamp = timeStamp;
@@ -54,15 +54,19 @@
 			task = this,
 			elapsed = 0,
 			delay = 0,
-			iterationCount = 0,
-			iterationTotal = 0,
+
+			delaySetting = 0,
+			iterationSetting = 0,
+
 			promise = {
 
-				start: function (ms) {
-					elapsed = ms || 0;
-					iterationCount = 0;
+				start: function () {
 					scheduler.add(task);
+					elapsed = 0;
+					delay = delaySetting;
+
 					// todo state
+
 					return promise;
 				},
 
@@ -72,13 +76,17 @@
 				},
 
 				jump: function (ms) {
-					elapsed = ms;
-					// todo state
+					// todo
 					return promise;
 				},
 
-				delay: function (ms) {
-					delay = ms;
+				delay: function (delayMs) {
+					delaySetting = delayMs;
+					return promise;
+				},
+
+				repeat: function (iterations) {
+					iterationSetting = iterations;
 					return promise;
 				},
 
@@ -90,20 +98,23 @@
 				progress: function (progressFilter) {
 					progressFilters.push(progressFilter);
 					return promise;
-				},
-
-				repeat: function (iterations) {
-					iterationTotal = iterations;
-					return promise;
 				}
-
 			};
 
 		task.promise = promise;
 
-		task.update = function(dt) {
-			elapsed += dt;
-			// todo state
+		task.step = function(dt) {
+
+			if (delay > 0) {
+				delay -= dt;
+				dt = delay >= 0 ? 0 : Math.abs(delay);
+			}
+
+			if (dt > 0) {
+				elapsed += dt;
+				console.log(elapsed);
+			}
+
 		};
 	}
 
@@ -174,21 +185,28 @@
 			// todo
 		},
 
-		LINEAR: function () {
-			// todo
+		LINEAR: function (t, b, c, d) {
+			return c * (t / d) + b;
 		},
 
-		SMOOTH_START2: function () {
-			// todo
+		SMOOTH_START2: function (t, b, c, d) {
+			t /= d;
+			return c * t * t + b;
 		},
-		SMOOTH_START3: function () {
-			// todo
+
+		SMOOTH_START3: function (t, b, c, d) {
+			t /= d;
+			return c * t * t * t + b;
 		},
-		SMOOTH_START4: function () {
-			// todo
+
+		SMOOTH_START4: function (t, b, c, d) {
+			t /= d;
+			return c * t * t * t * t + b;
 		},
-		SMOOTH_START5: function () {
-			// todo
+
+		SMOOTH_START5: function (t, b, c, d) {
+			t /= d;
+			return c * t * t * t * t * t + b;
 		},
 
 		SMOOTH_STOP2: function () {
