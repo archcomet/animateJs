@@ -14,20 +14,27 @@
 
     var target = document.getElementById('target');
 
-    var animation = animate(target)
+    var animation = animate(target.style)
             .from({
-                top: '100px',
-                left: '100px',
-                opacity: 0.5
+                opacity: 0
             })
             .to({
                 top: '200px',
                 left: '300px',
                 opacity: 1.0
-            }, 500)
+            }, 2000)
             .delay(1000)
-            .using(animate.easing.SMOOTH_STEP2)
+            .using(animate.easing.SMOOTH_START2)
             .repeat(Infinity)
+            .begin(function() {
+                console.log('begin', arguments);
+            })
+            .progress(function() {
+                console.log('update', arguments);
+            })
+            .done(function() {
+                console.log('done', arguments);
+            })
             .start();
 
 </script>

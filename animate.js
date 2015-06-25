@@ -6,88 +6,104 @@
 	}
 
 	var tasks = [],
-		tasksToRemove = [],
+		tasksToChange = [],
 		lastTimeStamp = null;
 
 	var scheduler = {
 
 		add: function (task) {
-			var idx = tasks.indexOf(task);
+			var idx = tasksToChange.indexOf(task);
 			if (idx === -1) {
-				tasks.push(task);
-				if (!lastTimeStamp) {
-					lastTimeStamp = performance.now();
-				}
+				tasksToChange.push(task);
 			}
+			task.requestState = STATE.STARTING;
 			scheduler.scheduleNext();
 		},
 
 		remove: function (task) {
-			var idx = tasksToRemove.indexOf(task);
+			var idx = tasksToChange.indexOf(task);
 			if (idx === -1) {
-				tasksToRemove.push(task);
+				tasksToChange.push(task);
 			}
+			task.requestState = STATE.STOPPING;
 		},
 
-		drain: function() {
-			for (var i = 0, n = tasksToRemove.length; i < n; ++i) {
-				var idx = tasks.indexOf(tasksToRemove[i]);
-				if (idx !== -1) {
-					tasks.splice(idx, 1);
+		updateStates: function() {
+			for (var i = 0, n = tasksToChange.length; i < n; ++i) {
+				var task = tasksToChange[i],
+					idx = tasks.indexOf(task);
+
+				switch(task.requestState) {
+					case STATE.STARTING:
+						if (idx === -1) {
+							tasks.push(task);
+						}
+						task.state = STATE.STARTING;
+						break;
+
+					case STATE.STOPPING:
+						if (idx !== -1) {
+							tasks.splice(idx, 1);
+						}
+						task.state = STATE.STOPPING;
+						break;
 				}
 			}
-			tasksToRemove.length = 0;
+
+			tasksToChange.length = 0;
 		},
 
 		scheduleNext: function () {
-			if (tasks.length) {
-				requestAnimationFrame(scheduler.step);
-			}
-			else {
-				lastTimeStamp = null;
+			requestAnimationFrame(scheduler.step);
+			if (!lastTimeStamp) {
+				lastTimeStamp = performance.now();
 			}
 		},
 
 		step: function () {
-			var i = 0,
-				n = tasks.length,
+			var i, n,
 				timeStamp = performance.now(),
 				dt = timeStamp - lastTimeStamp;
 
-			scheduler.drain();
+			scheduler.updateStates();
 
-			for (; i < n; ++i) {
+			for (i = 0, n = tasks.length; i < n; ++i) {
 				tasks[i].step(dt);
 			}
 
-			scheduler.drain();
-			scheduler.scheduleNext();
+			scheduler.updateStates();
 
-			lastTimeStamp = timeStamp;
+			if (tasks.length > 0) {
+				scheduler.scheduleNext();
+				lastTimeStamp = timeStamp;
+			}
+			else {
+				lastTimeStamp = null;
+			}
 		}
 	};
 
+	var STATE = {
+		NONE: 0,
+		STARTING: 1,
+		WAITING: 2,
+		RUNNING: 3,
+		STOPPING: 4
+	};
+
 	function Task() {
-		var doneFilters = [],
+		var beginFilters = [],
+			doneFilters = [],
 			progressFilters = [],
-			started = false,
 			task = this,
 			elapsed = 0,
 			delay = 0,
-
 			delaySetting = 0,
 			iterationSetting = 0,
-
 			promise = {
 
 				start: function () {
 					scheduler.add(task);
-					elapsed = 0;
-					delay = delaySetting;
-					started = false;
-
-					// todo state
-
 					return promise;
 				},
 
@@ -116,6 +132,11 @@
 					return promise;
 				},
 
+				begin: function(beginFilter) {
+					beginFilters.push(beginFilter);
+					return promise;
+				},
+
 				done: function (doneFilter) {
 					doneFilters.push(doneFilter);
 					return promise;
@@ -126,6 +147,12 @@
 					return promise;
 				}
 			};
+
+		task.wake = function() {
+			for (var i = 0, n = beginFilters.length; i < n; ++i) {
+				beginFilters[i].apply(promise, arguments);
+			}
+		};
 
 		task.notify = function() {
 			for (var i = 0, n = progressFilters.length; i < n; ++i) {
@@ -142,20 +169,30 @@
 		task.promise = promise;
 
 		task.step = function(dt) {
+
+			if (task.state === STATE.STARTING) {
+				delay = delaySetting;
+				elapsed = 0;
+				task.state = STATE.WAITING;
+			}
+
 			if (delay > 0) {
 				delay -= dt;
 				dt = delay >= 0 ? 0 : Math.abs(delay);
 			}
 
 			if (dt > 0) {
-				if (!started) {
-					started = true;
+				if (task.state === STATE.WAITING) {
 					task.begin();
+					task.state = STATE.RUNNING;
 				}
 				elapsed += dt;
 				task.update(elapsed);
 			}
 		};
+
+		task.state = STATE.NONE;
+		task.stateRequest = STATE.NONE;
 	}
 
 
@@ -173,38 +210,43 @@
 	var floatRegExp = /^([-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)(.*)/;
 
 	function format(target, source) {
-		var value, valueString, matches;
+		var value, valueString, matches, prop;
 		for (var key in target) {
 			if (target.hasOwnProperty(key)) {
-				if (target[key].from === undefined) {
-					target[key].from = source[key];
+
+				prop = target[key];
+				
+				if (prop.from === undefined) {
+					prop.from = source[key];
 				}
 
-				if (target[key].to === undefined) {
-					target[key].to = source[key];
+				if (prop.to === undefined) {
+					prop.to = source[key];
 				}
 
-				if (isString(target[key].from)) {
-					valueString = target[key].from;
+				if (isString(prop.from)) {
+					valueString = prop.from;
 					value = parseFloat(valueString);
 
 					if (!isNaN(value)) {
 						matches = valueString.match(floatRegExp);
-						target[key].suffix = matches[3];
-						target[key].from = value;
+						prop.suffix = matches[3];
+						prop.from = value;
 					}
 				}
 
-				if (isString(target[key].to)) {
-					valueString = target[key].to;
+				if (isString(prop.to)) {
+					valueString = prop.to;
 					value = parseFloat(valueString);
 
 					if (!isNaN(value)) {
 						matches = valueString.match(floatRegExp);
-						target[key].suffix = matches[3];
-						target[key].to = value;
+						prop.suffix = matches[3];
+						prop.to = value;
 					}
 				}
+				
+				prop.change = prop.to - prop.from;
 			}
 		}
 	}
@@ -224,11 +266,39 @@
 			merge(props, fromSetting, 'from');
 			merge(props, toSetting, 'to');
 			format(props, target);
+			task.wake(target);
 		};
 
 		task.update = function(elapsed) {
-			//todo
-			console.log('update', elapsed);
+			var t, b, c, d, v, r = 0;
+
+			t = elapsed;
+			d = durationSetting;
+
+			if (t > d) {
+				t = d;
+				r = t-d;
+			}
+
+			var key, prop;
+			for (key in props) {
+				if (props.hasOwnProperty(key)) {
+					prop = props[key];
+					b = prop.from;
+					c = prop.change;
+					v = easingFn(t, b, c, d);
+					target[key] = prop.suffix ? v + prop.suffix : v;
+				}
+			}
+
+			task.notify(target, elapsed, d);
+
+			if (t === d) {
+				scheduler.remove(task);
+				task.resolve(target);
+			}
+
+			return r;
 		};
 
 		promise.from = function (descriptor, duration, doneFilter) {
