@@ -1,5 +1,10 @@
 
+// todo composer
+// todo arch
+// todo bezier
+// todo range mapping
 // todo int vs float
+// todo docs & examples
 
 // i made a thing v1
 //		purpose animations
@@ -494,7 +499,7 @@
 	function animate(target) {
 
 		var task = new Task(),
-			easingFn = animate.easing.LINEAR,
+			easingFn = animate.easing.linear,
 			fromSetting = null,
 			toSetting = null,
 			props,
@@ -539,10 +544,11 @@
 		};
 
 		task.onProgress = function (dt, elapsed, duration) {
-			var t, b, c, d, v;
+			var t, b, c, d, x;
 
 			t = elapsed;
 			d = duration;
+			x = t/d;
 
 			var j, jl, i, il, key, prop;
 			for (i = 0, il = propsArray.length; i < il; ++i) {
@@ -554,7 +560,7 @@
 					for (j = 0, jl = prop.toIndexes.length; j < jl; ++j) {
 						b = prop.from[j];
 						c = prop.change[j];
-						prop.toPattern[prop.toIndexes[j]] = easingFn(t, b, c, d);
+						prop.toPattern[prop.toIndexes[j]] = c * easingFn(x, x) + b;
 					}
 
 					target[key] = prop.toPattern.join('');
@@ -563,7 +569,7 @@
 				else {
 					b = prop.from;
 					c = prop.change;
-					target[key] = easingFn(t, b, c, d);
+					target[key] =  c * easingFn(x, x) + b;
 				}
 			}
 		};
@@ -689,515 +695,288 @@
 
 	var easing = {
 
-		/**
-		 * Returns a mix function from two easing functions.
-		 *
-		 * @param {Function} aFn - Function A
-		 * @param {Function} bFn - Function B
-		 * @param {Number} weightB - Weight of function B. Should be between 0 and 1.0
-		 * @returns {Function}
-		 */
-
 		mix: function (aFn, bFn, weightB) {
-			return function (t, b, c, d) {
-				return aFn(t, b, c, d) * (1 - weightB) + bFn(t, b, c, d) * weightB;
+			return function (x, t) {
+				return aFn(x, t) * (1 - weightB) + bFn(x, t) * weightB;
 			}
 		},
-
-		/**
-		 * Returns a crossfade function from two easing functions. Similar to mix, except t is used for weight.
-		 *
-		 * @param {Function} aFn - Function A
-		 * @param {Function} bFn - Function B
-		 * @returns {Function}
-		 */
 
 		crossfade: function (aFn, bFn) {
-			return function (t, b, c, d) {
-				return aFn(t, b, c, d) * (1 - (t/d)) + bFn(t, b, c, d) * (t/d);
+			return function (x, t) {
+				return aFn(x, t) * (1 - t) + bFn(x, t) * (t);
 			}
 		},
-
-		/**
-		 * Returns a smoothStart function of degree N.
-		 *
-		 * @param {number} n
-		 * @returns {Function}
-		 */
 
 		smoothStartN: function (n) {
-			return function (t, b, c, d) {
-				t /= d;
-				return c * Math.pow(t, n) + b;
+			return function (x, t) {
+				return Math.pow(x, n);
 			}
 		},
-
-		/**
-		 * Returns a smoothStop function of degree N.
-		 *
-		 * @param {number} n
-		 * @returns {Function}
-		 */
 
 		smoothStopN: function (n) {
-			// todo
+			return function (x, t) {
+				return 1 - Math.pow(1 - x, n);
+			}
 		},
-
-		/**
-		 * Returns a smoothStep function of degree N.
-		 *
-		 * @param {number} n
-		 * @returns {Function}
-		 */
 
 		smoothStepN: function (n) {
-			// todo
+			return function (x, t) {
+				var s = 1 - x;
+				return Math.pow(x, n) * (1 - t) + (1 - Math.pow(s, n)) * t;
+			}
 		},
-
-		/**
-		 * Returns a flipped function
-		 *
-		 * @param {Function} aFn
-		 * @returns {Function}
-		 */
 
 		flip: function (aFn) {
-			return function (t, b, c, d) {
-				return aFn(d - t, b, c, d);
+			return function (x, t) {
+				return 1 - aFn(x, t);
 			}
 		},
-
-		/**
-		 *
-		 */
 
 		scale: function (aFn) {
-			return function (t, b, c, d) {
-				return aFn(t, b, c, d) * (t/d);
+			return function (x, t) {
+				return aFn(x, t) * t;
 			}
 		},
-
-		/**
-		 *
-		 */
 
 		reverseScale: function (aFn) {
-			return function (t, b, c, d) {
-				return aFn(t, b, c, d) * (1 - t/d);
+			return function (x, t) {
+				return aFn(x, t) * (1 - t);
 			}
 		},
 
-		/**
-		 *
-		 * @param t
-		 * @param b
-		 * @param c
-		 * @param d
-		 * @returns {*}
-		 */
-
-		LINEAR: function (t, b, c, d) {
-			return c * (t / d) + b;
+		linear: function (x) {
+			return x;
 		},
 
-		/**
-		 *
-		 * @param t
-		 * @param b
-		 * @param c
-		 * @param d
-		 * @returns {*}
-		 */
-
-		SMOOTH_START2: function (t, b, c, d) {
-			t /= d;
-			return c * t * t + b;
+		smoothStart2: function (x) {
+			return x * x;
 		},
 
-		/**
-		 *
-		 * @param t
-		 * @param b
-		 * @param c
-		 * @param d
-		 * @returns {*}
-		 */
-
-		SMOOTH_START3: function (t, b, c, d) {
-			t /= d;
-			return c * t * t * t + b;
+		smoothStart3: function (x) {
+			return x * x * x;
 		},
 
-		/**
-		 *
-		 * @param t
-		 * @param b
-		 * @param c
-		 * @param d
-		 * @returns {*}
-		 */
-
-		SMOOTH_START4: function (t, b, c, d) {
-			t /= d;
-			return c * t * t * t * t + b;
+		smoothStart4: function (x) {
+			return x * x * x * x;
 		},
 
-		/**
-		 *
-		 * @param t
-		 * @param b
-		 * @param c
-		 * @param d
-		 * @returns {*}
-		 */
-
-		SMOOTH_START5: function (t, b, c, d) {
-			t /= d;
-			return  c * t * t * t * t * t + b;
+		smoothStart5: function (x) {
+			return x * x * x * x;
 		},
 
-		/**
-		 *
-		 */
-
-		SMOOTH_STOP2: function (t, b, c, d) {
-			t /= d;
-			return -c * t * (t - 2) + b;
+		smoothStop2: function (x) {
+			x = 1 - x;
+			return 1 - x * x;
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
-
-		SMOOTH_STOP3: function (t, b, c, d) {
-			t /= d;
-			t--;
-			return c * (t * t * t + 1) + b;
+		smoothStop3: function (x) {
+			x = 1 - x;
+			return 1 - x * x * x;
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
-
-		SMOOTH_STOP4: function (t, b, c, d) {
-			t /= d;
-			t--;
-			return -c * (t * t * t * t - 1) + b;
+		smoothStop4: function (x) {
+			x = 1 - x;
+			return 1 - x * x * x * x;
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
-
-		SMOOTH_STOP5: function (t, b, c, d) {
-			t /= d;
-			t--;
-			return c * (t * t * t * t * t + 1) + b;
+		smoothStop5: function (x) {
+			x = 1 - x;
+			return 1 - x * x * x * x * x;
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
-
-		SMOOTH_STEP2: function (t, b, c, d) {
-			t /= d / 2;
-			if (t < 1) return c / 2 * t * t + b;
-			t--;
-			return -c / 2 * (t * (t - 2) - 1) + b;
+		smoothStep2: function (x, t) {
+			var s = 1 - x;
+			return (x * x) * (1 - t) + (1 - s * s) * t;
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
-
-		SMOOTH_STEP3: function (t, b, c, d) {
-			t /= d / 2;
-			if (t < 1) return c / 2 * t * t * t + b;
-			t -= 2;
-			return c / 2 * (t * t * t + 2) + b;
+		smoothStep3: function (x, t) {
+			var s = 1 - x;
+			return (x * x * x) * (1 - t) + (1 - s * s * s) * t;
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
-
-		SMOOTH_STEP4: function (t, b, c, d) {
-			t /= d / 2;
-			if (t < 1) return c / 2 * t * t * t * t + b;
-			t -= 2;
-			return -c / 2 * (t * t * t * t - 2) + b;
+		smoothStep4: function (x, t) {
+			var s = 1 - x;
+			return (x * x * x * x) * (1 - t) + (1 - s * s * s * s) * t;
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
-
-		SMOOTH_STEP5: function (t, b, c, d) {
-			t /= d / 2;
-			if (t < 1) return c / 2 * t * t * t * t * t + b;
-			t -= 2;
-			return c / 2 * (t * t * t * t * t + 2) + b;
+		smoothStep5: function (x, t) {
+			var s = 1 - x;
+			return (x * x * x * x * x) * (1 - t) + (1 - s * s * s * s * s) * t;
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
+		sineStart: function (x) {
+			return -Math.cos(x * (Math.PI/2)) + 1.0;
+		},
 
-		ELASTIC_START: function (t, b, c, d) {
-			var s = 1.70158;
-			var p = 0;
-			var a = c;
-			if (t == 0) return b;
-			if ((t /= d) == 1) return b + c;
-			if (!p) p = d * .3;
-			if (a < Math.abs(c)) {
-				a = c;
-				s = p / 4;
+		sineStop: function (x) {
+			return Math.sin(x * (Math.PI/2));
+		},
+
+		sineStep: function (x) {
+			return -1/2 * (Math.cos(Math.PI * x) - 1);
+		},
+
+		circStart: function (x) {
+			return -(Math.sqrt(1 - x * x) - 1);
+		},
+
+		circStop: function (x) {
+			x -= 1;
+			return Math.sqrt(1 - x * x);
+		},
+
+		circStep: function (x) {
+			x *= 2;
+			if (x < 1) return -1/2 * (Math.sqrt(1- x * x) - 1);
+			else return 1/2 * (Math.sqrt(1 - (x-2)*(x-2)) + 1);
+		},
+
+		expoStart: function (x) {
+			if (x === 0) return 0.0;
+			return Math.pow(2, 10 * (x-1));
+		},
+
+		expoStop: function (x) {
+			if (x === 1.0) return 1.0;
+			return -Math.pow(2, -10 * x) + 1;
+		},
+
+		expoStep: function (x) {
+			if (x === 0.0) return 0.0;
+			if (x === 1.0) return 1.0;
+			x *= 2;
+
+			if (x < 1.0) return 1/2 * Math.pow(2, 10 * (x - 1));
+			return 1/2 * (-Math.pow(2, -10 * (x - 1)) + 2);
+		},
+
+		backStart: function (x, t, s) {
+			if (s === undefined) {
+				s = 1.70158;
 			}
-			else s = p / (2 * Math.PI) * Math.asin(c / a);
-			return -(a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p)) + b;
+			return x * x * ((s + 1) * x - s);
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
-
-		ELASTIC_STOP: function (t, b, c, d) {
-			var s = 1.70158;
-			var p = 0;
-			var a = c;
-			if (t == 0) return b;
-			if ((t /= d) == 1) return b + c;
-			if (!p) p = d * .3;
-			if (a < Math.abs(c)) {
-				a = c;
-				s = p / 4;
+		backStop: function (x, t, s) {
+			if (s === undefined) {
+				s = 1.70158;
 			}
-			else s = p / (2 * Math.PI) * Math.asin(c / a);
-			return a * Math.pow(2, -10 * t) * Math.sin((t * d - s) * (2 * Math.PI) / p) + c + b;
+			x = (x - 1);
+			return x * x * ((s + 1) * x + s) + 1;
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
-
-		ELASTIC_STEP: function (t, b, c, d) {
-			var s = 1.70158;
-			var p = 0;
-			var a = c;
-			if (t == 0) return b;
-			if ((t /= d / 2) == 2) return b + c;
-			if (!p) p = d * (.3 * 1.5);
-			if (a < Math.abs(c)) {
-				a = c;
-				s = p / 4;
+		backStep: function (x, t, s) {
+			if (s === undefined) {
+				s = 1.70158;
 			}
-			else s = p / (2 * Math.PI) * Math.asin(c / a);
-			if (t < 1) return -.5 * (a * Math.pow(2, 10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p)) + b;
-			return a * Math.pow(2, -10 * (t -= 1)) * Math.sin((t * d - s) * (2 * Math.PI) / p) * .5 + c + b;
+			s *= 1.525;
+			x *= 2;
+			if (x < 1) return 1 / 2 * (x * x * ((s + 1) * x - s));
+			x -= 2;
+			return 1 / 2 * (x * x * ((s + 1) * x + s) + 2);
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
-
-		BOUNCE_START: function (t, b, c, d) {
-			return c - easing.BOUNCE_STOP(d - t, 0, c, d) + b;
+		backStartS: function (s) {
+			return function (x, t) {
+				return easing.backStart(x, t, s);
+			}
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
+		backStopS: function (s) {
+			return function (x, t) {
+				return easing.backStop(x, t, s);
+			}
+		},
 
-		BOUNCE_STOP: function (t, b, c, d) {
-			if ((t /= d) < (1 / 2.75)) {
-				return c * (7.5625 * t * t) + b;
-			} else if (t < (2 / 2.75)) {
-				return c * (7.5625 * (t -= (1.5 / 2.75)) * t + .75) + b;
-			} else if (t < (2.5 / 2.75)) {
-				return c * (7.5625 * (t -= (2.25 / 2.75)) * t + .9375) + b;
+		backStepS: function (s) {
+			return function (x, t) {
+				return easing.backStep(x, t, s);
+			}
+		},
+
+		elasticStart: function (x) {
+			if (x === 0) return 0.0;
+			if (x === 1) return 1.0;
+			x -= 1;
+			return -(Math.pow(2, 10 * x) * Math.sin((x - 0.075) * (2 * Math.PI) / 0.3));
+		},
+
+		elasticStop: function (x) {
+			if (x === 0) return 0.0;
+			if (x === 1) return 1.0;
+			return Math.pow(2, -10 * x) * Math.sin((x - 0.075) * (2 * Math.PI) / 0.3) + 1.0;
+		},
+
+		elasticStep: function (x) {
+			x *= 2;
+			if (x === 0) return 0.0;
+			if (x === 2) return 1.0;
+			if (x < 1) return -.5 * (Math.pow(2, 10 * (x-1)) * Math.sin((x - 1.1125) * (2 * Math.PI) / 0.45));
+			return Math.pow(2, -10 * (x-1)) * Math.sin((x - 1.1125) * (2 * Math.PI) / 0.45) * .5 + 1.0;
+		},
+
+		bounceStart: function (x, t) {
+			return 1.0 - easing.bounceStop(1.0 - x, t);
+		},
+
+		bounceStop: function (x) {
+			if (x < (1/2.75)) {
+				return 7.5625 * x * x;
+			}
+			else if (x < (2 / 2.75)) {
+				x -= 1.5 / 2.75;
+				return (7.5625 * x * x + .75);
+			} else if (x < (2.5 / 2.75)) {
+				x -= 2.25 / 2.75;
+				return 7.5625 * x * x + .9375;
 			} else {
-				return c * (7.5625 * (t -= (2.625 / 2.75)) * t + .984375) + b;
+				x -= 2.625 / 2.75;
+				return 7.5625 * x * x + .984375;
 			}
 		},
 
-		/**
-		 *
-		 * @constructor
-		 */
-
-		BOUNCE_STEP: function (t, b, c, d) {
-			if (t < d / 2) return easing.BOUNCE_START(t * 2, 0, c, d) * .5 + b;
-			return easing.BOUNCE_STOP(t * 2 - d, 0, c, d) * .5 + c * .5 + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		BACK_START: function (t, b, c, d) {
-			var s = 1.70158;
-			return c * (t /= d) * t * ((s + 1) * t - s) + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		BACK_STOP: function (t, b, c, d) {
-			var s = 1.70158;
-			return c * ((t = t / d - 1) * t * ((s + 1) * t + s) + 1) + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		BACK_STEP: function (t, b, c, d) {
-			var s = 1.70158;
-			if ((t /= d / 2) < 1) return c / 2 * (t * t * (((s *= (1.525)) + 1) * t - s)) + b;
-			return c / 2 * ((t -= 2) * t * (((s *= (1.525)) + 1) * t + s) + 2) + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		CIRCULAR_START: function (t, b, c, d) {
-			return -c * (Math.sqrt(1 - (t /= d) * t) - 1) + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		CIRCULAR_STOP: function (t, b, c, d) {
-			return c * Math.sqrt(1 - (t = t / d - 1) * t) + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		CIRCULAR_STEP: function (t, b, c, d) {
-			if ((t /= d / 2) < 1) return -c / 2 * (Math.sqrt(1 - t * t) - 1) + b;
-			return c / 2 * (Math.sqrt(1 - (t -= 2) * t) + 1) + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		SINUSOIDAL_START: function (t, b, c, d) {
-			return -c * Math.cos(t / d * (Math.PI / 2)) + c + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		SINUSOIDAL_STOP: function (t, b, c, d) {
-			return c * Math.sin(t / d * (Math.PI / 2)) + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		SINUSOIDAL_STEP: function (t, b, c, d) {
-			return -c / 2 * (Math.cos(Math.PI * t / d) - 1) + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		EXPONENTIAL_START: function (t, b, c, d) {
-			return (t == 0) ? b : c * Math.pow(2, 10 * (t / d - 1)) + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		EXPONENTIAL_STOP: function (t, b, c, d) {
-			return (t == d) ? b + c : c * (-Math.pow(2, -10 * t / d) + 1) + b;
-		},
-
-		/**
-		 *
-		 * @constructor
-		 */
-
-		EXPONENTIAL_STEP: function (t, b, c, d) {
-			if (t == 0) return b;
-			if (t == d) return b + c;
-			if ((t /= d / 2) < 1) return c / 2 * Math.pow(2, 10 * (t - 1)) + b;
-			return c / 2 * (-Math.pow(2, -10 * --t) + 2) + b;
+		bounceStep: function (x, t) {
+			if (x < 0.5) return easing.bounceStart(x * 2, t) * 0.5;
+			return easing.bounceStop(x * 2 - 1.0, t) * 0.5 + 0.5;
 		}
 	};
 
-	easing.easeInQuad = easing.SMOOTH_START2;
-	easing.easeInCubic = easing.SMOOTH_START3;
-	easing.easeInQuartic = easing.SMOOTH_START4;
-	easing.easeInQuintic = easing.SMOOTH_START5;
+	easing.easeInQuad = easing.smoothStart2;
+	easing.easeInCubic = easing.smoothStart3;
+	easing.easeInQuartic = easing.smoothStart4;
+	easing.easeInQuintic = easing.smoothStart5;
 
-	easing.easeOutQuad = easing.SMOOTH_STOP2;
-	easing.easeOutCubic = easing.SMOOTH_STOP3;
-	easing.easeOutQuartic = easing.SMOOTH_STOP4;
-	easing.easeOutQuintic = easing.SMOOTH_STOP5;
+	easing.easeOutQuad = easing.smoothStop2;
+	easing.easeOutCubic = easing.smoothStop3;
+	easing.easeOutQuartic = easing.smoothStop4;
+	easing.easeOutQuintic = easing.smoothStop5;
 
-	easing.easeInOutQuad = easing.SMOOTH_STEP2;
-	easing.easeInOutCubic = easing.SMOOTH_STEP3;
-	easing.easeInOutQuartic = easing.SMOOTH_STEP4;
-	easing.easeInOutQuintic = easing.SMOOTH_STEP5;
+	easing.easeInOutQuad = easing.smoothStep2;
+	easing.easeInOutCubic = easing.smoothStep3;
+	easing.easeInOutQuartic = easing.smoothStep4;
+	easing.easeInOutQuintic = easing.smoothStep5;
 
-	easing.easeInSine = easing.SINUSOIDAL_START;
-	easing.easeInCirc = easing.CIRCULAR_START;
-	easing.easeInExpo = easing.EXPONENTIAL_START;
-	easing.easeInBack = easing.BACK_START;
-	easing.easeInElastic = easing.ELASTIC_START;
-	easing.easeInBounce = easing.BOUNCE_START;
+	easing.easeInSine = easing.sineStart;
+	easing.easeInCirc = easing.circStart;
+	easing.easeInExpo = easing.expoStart;
+	easing.easeInBack = easing.backStart;
+	easing.easeInElastic = easing.elasticStart;
+	easing.easeInBounce = easing.bounceStart;
 	
-	easing.easeOutSine = easing.SINUSOIDAL_STOP;
-	easing.easeOutCirc = easing.CIRCULAR_STOP;
-	easing.easeOutExpo = easing.EXPONENTIAL_STOP;
-	easing.easeOutBack = easing.BACK_STOP;
-	easing.easeOutElastic = easing.ELASTIC_STOP;
-	easing.easeOutBounce = easing.BOUNCE_STOP;
+	easing.easeOutSine = easing.sineStop;
+	easing.easeOutCirc = easing.circStop;
+	easing.easeOutExpo = easing.expoStop;
+	easing.easeOutBack = easing.backStop;
+	easing.easeOutElastic = easing.elasticStop;
+	easing.easeOutBounce = easing.bounceStop;
 
-	easing.easeInOutSine = easing.SINUSOIDAL_STEP;
-	easing.easeInOutCirc = easing.CIRCULAR_STEP;
-	easing.easeInOutExpo = easing.EXPONENTIAL_STEP;
-	easing.easeInOutBack = easing.BACK_STEP;
-	easing.easeInOutElastic = easing.ELASTIC_STEP;
-	easing.easeInOutBounce = easing.BOUNCE_STEP;
+	easing.easeInOutSine = easing.sineStep;
+	easing.easeInOutCirc = easing.circStep;
+	easing.easeInOutExpo = easing.expoStep;
+	easing.easeInOutBack = easing.backStep;
+	easing.easeInOutElastic = easing.elasticStep;
+	easing.easeInOutBounce = easing.bounceStep;
 
-
-	// t * (1 - t)
 	animate.easing = easing;
 
 	window.animate = animate;

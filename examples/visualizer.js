@@ -9,64 +9,60 @@
 
 	var visualizers = [
 		[
-			['linear', easing.LINEAR, 'grey']
+			['linear', easing.linear, 'grey']
 		],
 		[
-			['smoothStart2<br>easeInQuad', easing.SMOOTH_START2, 'red'],
-			['smoothStart3<br>easeInCubic', easing.SMOOTH_START3, 'green'],
-			['smoothStart4<br>easeInQuartic', easing.SMOOTH_START4, 'blue'],
-			['smoothStart5<br>easeInQuintic', easing.SMOOTH_START5, 'red']
+			['smoothStart2<br>easeInQuad', easing.smoothStart2, 'red'],
+			['smoothStart3<br>easeInCubic', easing.smoothStart3, 'green'],
+			['smoothStart4<br>easeInQuartic', easing.smoothStart4, 'blue'],
+			['smoothStart5<br>easeInQuintic', easing.smoothStart5, 'red']
 		],
 		[
-			['smoothStop2<br>easeOutQuad', easing.SMOOTH_STOP2, 'red'],
-			['smoothStop3<br>easeOutCubic', easing.SMOOTH_STOP3, 'green'],
-			['smoothStop4<br>easeOutQuartic', easing.SMOOTH_STOP4, 'blue'],
-			['smoothStop5<br>easeOutQuintic', easing.SMOOTH_STOP5, 'red']
+			['smoothStop2<br>easeOutQuad', easing.smoothStop2, 'red'],
+			['smoothStop3<br>easeOutCubic', easing.smoothStop3, 'green'],
+			['smoothStop4<br>easeOutQuartic', easing.smoothStop4, 'blue'],
+			['smoothStop5<br>easeOutQuintic', easing.smoothStop5, 'red']
 		],
 		[
-			['smoothStep2<br>easeInOutQuad', easing.SMOOTH_STEP2, 'red'],
-			['smoothStep3<br>easeInOutCubic', easing.SMOOTH_STEP3, 'green'],
-			['smoothStep4<br>easeInOutQuartic', easing.SMOOTH_STEP4, 'blue'],
-			['smoothStep5<br>easeInOutQuintic', easing.SMOOTH_STEP5, 'red']
+			['smoothStep2<br>easeInOutQuad', easing.smoothStep2, 'red'],
+			['smoothStep3<br>easeInOutCubic', easing.smoothStep3, 'green'],
+			['smoothStep4<br>easeInOutQuartic', easing.smoothStep4, 'blue'],
+			['smoothStep5<br>easeInOutQuintic', easing.smoothStep5, 'red']
 		],
 		[
-			['sinusoidalStart<br>easeInSine', easing.SINUSOIDAL_START, 'red'],
-			['circularStart<br>easeInCirc', easing.CIRCULAR_START, 'green'],
-			['exponentialStart<br>easeInExpo', easing.EXPONENTIAL_START, 'blue'],
-			['backStart<br>easeInBack', easing.BACK_START, 'red'],
-			['elasticStart<br>easeInElastic', easing.ELASTIC_START, 'green'],
-			['bounceStart<br>easeInBounce', easing.BOUNCE_START, 'blue']
+			['sineStart<br>easeInSine', easing.sineStart, 'red'],
+			['circStart<br>easeInCirc', easing.circStart, 'green'],
+			['expoStart<br>easeInExpo', easing.expoStart, 'blue'],
+			['backStart<br>easeInBack', easing.backStart, 'red'],
+			['elasticStart<br>easeInElastic', easing.elasticStart, 'green'],
+			['bounceStart<br>easeInBounce', easing.bounceStart, 'blue']
 		],
 		[
-			['sinusoidalStop<br>easeOutSine', easing.SINUSOIDAL_STOP, 'red'],
-			['circularStop<br>easeOutCirc', easing.CIRCULAR_STOP, 'green'],
-			['exponentialStop<br>easeOutExpo', easing.EXPONENTIAL_STOP, 'blue'],
-			['backStop<br>easeOutBack', easing.BACK_STOP, 'red'],
-			['elasticStop<br>easeOutElastic', easing.ELASTIC_STOP, 'green'],
-			['bounceStop<br>easeOutStop', easing.BOUNCE_STOP, 'blue']
+			['sineStop<br>easeOutSine', easing.sineStop, 'red'],
+			['circStop<br>easeOutCirc', easing.circStop, 'green'],
+			['expoStop<br>easeOutExpo', easing.expoStop, 'blue'],
+			['backStop<br>easeOutBack', easing.backStop, 'red'],
+			['elasticStop<br>easeOutElastic', easing.elasticStop, 'green'],
+			['bounceStop<br>easeOutStop', easing.bounceStop, 'blue']
 		],
 		[
-			['sinusoidalStep<br>easeInOutSine', easing.SINUSOIDAL_STEP, 'red'],
-			['circularStep<br>easeInOutCirc', easing.CIRCULAR_STEP, 'green'],
-			['exponentialStep<br>easeInOutExpo', easing.EXPONENTIAL_STEP, 'blue'],
-			['backStep<br>easeInOutBounce', easing.BACK_STEP, 'red'],
-			['elasticStep<br>easeInOutElastic', easing.ELASTIC_STEP, 'green'],
-			['bounceStep<br>easeInOutBounce', easing.BOUNCE_STEP, 'blue']
+			['sineStep<br>easeInOutSine', easing.sineStep, 'red'],
+			['circStep<br>easeInOutCirc', easing.circStep, 'green'],
+			['expoStep<br>easeInOutExpo', easing.expoStep, 'blue'],
+			['backStep<br>easeInOutBounce', easing.backStep, 'red'],
+			['elasticStep<br>easeInOutElastic', easing.elasticStep, 'green'],
+			['bounceStep<br>easeInOutBounce', easing.bounceStep, 'blue']
 		],
-
 		[
 			['smoothStartN(2.7)', easing.smoothStartN(2.7), 'red'],
-			['mix(backStep, elasticStop, 0.2)', easing.mix(easing.BACK_STEP, easing.ELASTIC_STOP, 0.2), 'red'],
-			['crossfade(stop3, start3)', easing.crossfade(easing.SMOOTH_STOP3, easing.SMOOTH_START3), 'red'],
-			['smoothStart2d', easing.crossfade(easing.SMOOTH_START2, easing.SMOOTH_STOP2), 'magenta']
+			['mix(backStep, elasticStop, 0.2)', easing.mix(easing.backStep, easing.elasticStop, 0.2), 'red'],
+			['crossfade(stop3, start3)', easing.crossfade(easing.smoothStop3, easing.smoothStart3), 'red'],
+			['smoothStart2d', easing.crossfade(easing.smoothStart2, easing.smoothStop2), 'magenta']
 		]
 	];
 
 
 	function visualizer(parent, titleText, easingFn, color) {
-
-
-		// Root Div
 
 		var visualizer = document.createElement('div');
 		visualizer.classList.add('visualizer');
@@ -110,15 +106,18 @@
 			size = 200,
 			path = [];
 
-		var i, t, b, c, d;
+		var i, t, b, c, d, x, v;
 		for (i = 0; i < size; ++i) {
 			t = Math.floor(width * (i / (size - 1)));
 			b = height;
 			c = -height;
 			d = width;
 
+			x = t/d;
+			v = c * easingFn(x, x) + b;
+
 			path.push(i === 0 ? 'M' : ' L');
-			path.push(t.toFixed(1), ',', easingFn(t, b, c, d).toFixed(1));
+			path.push(t.toFixed(1), ',', v.toFixed(1));
 		}
 
 		plot.setAttributeNS(null, 'stroke', color);
