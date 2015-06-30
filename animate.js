@@ -120,9 +120,6 @@
 		// Initial state
 		NONE: 'none',
 
-		// Task has been added to the scheduler, but has not yet been run
-		PENDING: 'pending',
-
 		// Task has been executed, but is waiting due to delay setting
 		WAITING: 'waiting',
 
@@ -297,7 +294,7 @@
 
 			if (timeStamp !== undefined || task.state !== STATE.PAUSED) {
 				task.setTimeStamp(timeStamp || 0, 0);
-				task.state = STATE.PENDING;
+				task.state = STATE.WAITING;
 			}
 
 			scheduler.add(task);
@@ -307,11 +304,10 @@
 
 			notifications = (
 				task.state !== STATE.WAITING &&
-				task.state !== STATE.PENDING &&
 				task.state !== STATE.RUNNING
 			);
 
-			task.state = STATE.PENDING;
+			task.state = STATE.WAITING;
 			task.setTimeStamp(0, 0);
 			task.step(timeStamp);
 
@@ -348,18 +344,13 @@
 			// Preparing the task ...
 			if (task.state === STATE.NONE || task.state === STATE.DONE) {
 				task.setTimeStamp(0, iterations);
-				task.state = STATE.PENDING;
+				task.state = STATE.WAITING;
 			}
 
 			elapsed += dt;
 
-			// Waiting for the task ...
-			if (elapsed < 0) {
-				task.state = STATE.WAITING;
-			}
-
 			// Starting the task ...
-			else if (task.state === STATE.WAITING || task.state === STATE.PENDING) {
+			if (elapsed >= 0 && task.state === STATE.WAITING) {
 
 				task.state = STATE.RUNNING;
 
