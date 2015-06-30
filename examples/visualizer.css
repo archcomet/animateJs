@@ -1,0 +1,57 @@
+
+.visualizer {
+    display: inline-block;
+    padding: 5px 10px;
+    outline: none;
+    margin: 5px;
+
+    -webkit-transition: all 0.30s ease-in-out;
+    -moz-transition: all 0.30s ease-in-out;
+    -ms-transition: all 0.30s ease-in-out;
+    -o-transition: all 0.30s ease-in-out;
+}
+
+.visualizer.focus {
+    background-color: #eff4ff;
+}
+
+.visualizer>.wrap {
+    position: relative;
+    display: inline-block;
+}
+
+.visualizer>.wrap>svg {
+    position: absolute;
+    top: 0;
+}
+
+.visualizer>.wrap>.viewBox {
+    position: absolute;
+}
+
+.visualizer>.wrap>.viewBox>.dot {
+    position: absolute;
+    transform: translate(-4px,-4px);
+    width: 8px;
+    height: 8px;
+    border-radius: 4px;
+}
+
+.visualizer>.wrap>.viewBox>.marker {
+    position: absolute;
+    transform: translate(20px, -4px);
+    width: 0;
+    height: 0;
+    right: 0;
+    border: 4px solid transparent;
+    border-right-width: 15px;
+    border-left-width: 0;
+    border-right-color: black;
+}
+
+.visualizer .title {
+    text-align: center;
+    font-family: Arial, sans-serif;
+    font-size: 11px;
+    color: black;
+}
