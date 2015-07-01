@@ -1,9 +1,6 @@
 
-// todo composer
-// todo arch
-// todo bezier
-// todo range mapping
 // todo int vs float
+// todo bezier
 // todo docs & examples
 
 // i made a thing v1
@@ -551,7 +548,7 @@
 					for (j = 0, jl = prop.toIndexes.length; j < jl; ++j) {
 						b = prop.from[j];
 						c = prop.change[j];
-						prop.toPattern[prop.toIndexes[j]] = c * easingFn(x, x) + b;
+						prop.toPattern[prop.toIndexes[j]] = c * easingFn(x) + b;
 					}
 
 					target[key] = prop.toPattern.join('');
@@ -560,7 +557,7 @@
 				else {
 					b = prop.from;
 					c = prop.change;
-					target[key] =  c * easingFn(x, x) + b;
+					target[key] =  c * easingFn(x) + b;
 				}
 			}
 		};
@@ -687,51 +684,45 @@
 	var easing = {
 
 		mix: function (aFn, bFn, weightB) {
-			return function (x, t) {
-				return aFn(x, t) * (1 - weightB) + bFn(x, t) * weightB;
+			return function (x) {
+				return aFn(x) * (1 - weightB) + bFn(x) * weightB;
 			}
 		},
 
 		crossfade: function (aFn, bFn) {
-			return function (x, t) {
-				return aFn(x, t) * (1 - t) + bFn(x, t) * (t);
+			return function (x) {
+				return aFn(x) * (1 - x) + bFn(x) * x;
+			}
+		},
+
+		stepwise: function(aFn, bFn) {
+			return function (x) {
+				if (x < 0.5)
+					return aFn(2 * x) * 0.5;
+				return bFn(2 * x - 1) * 0.5 + 0.5;
 			}
 		},
 
 		smoothStartN: function (n) {
-			return function (x, t) {
+			return function (x) {
 				return Math.pow(x, n);
 			}
 		},
 
 		smoothStopN: function (n) {
-			return function (x, t) {
+			return function (x) {
 				return 1 - Math.pow(1 - x, n);
 			}
 		},
 
 		smoothStepN: function (n) {
-			return function (x, t) {
-				var s = 1 - x;
-				return Math.pow(x, n) * (1 - t) + (1 - Math.pow(s, n)) * t;
-			}
-		},
+			var startFn = easing.smoothStartN(n),
+				stopFn = easing.smoothStopN(n);
 
-		flip: function (aFn) {
-			return function (x, t) {
-				return 1 - aFn(x, t);
-			}
-		},
-
-		scale: function (aFn) {
-			return function (x, t) {
-				return aFn(x, t) * t;
-			}
-		},
-
-		reverseScale: function (aFn) {
-			return function (x, t) {
-				return aFn(x, t) * (1 - t);
+			return function (x) {
+				if (x < 0.5)
+					return startFn(2 * x) * 0.5;
+				return stopFn(2 * x - 1) * 0.5 + 0.5;
 			}
 		},
 
@@ -775,24 +766,40 @@
 			return 1 - x * x * x * x * x;
 		},
 
-		smoothStep2: function (x, t) {
-			var s = 1 - x;
-			return (x * x) * (1 - t) + (1 - s * s) * t;
+		smoothStep2: function (x) {
+			if (x < 0.5) {
+				x *= 2;
+				return x * x * 0.5;
+			}
+			x = 1 - (2 * x - 1);
+			return (1 - x * x) * 0.5 + 0.5;
 		},
 
-		smoothStep3: function (x, t) {
-			var s = 1 - x;
-			return (x * x * x) * (1 - t) + (1 - s * s * s) * t;
+		smoothStep3: function (x) {
+			if (x < 0.5) {
+				x *= 2;
+				return x * x * x* 0.5;
+			}
+			x = 1 - (2 * x - 1);
+			return (1 - x * x * x) * 0.5 + 0.5;
 		},
 
-		smoothStep4: function (x, t) {
-			var s = 1 - x;
-			return (x * x * x * x) * (1 - t) + (1 - s * s * s * s) * t;
+		smoothStep4: function (x) {
+			if (x < 0.5) {
+				x *= 2;
+				return x * x * x * x * 0.5;
+			}
+			x = 1 - (2 * x - 1);
+			return (1 - x * x * x * x) * 0.5 + 0.5;
 		},
 
-		smoothStep5: function (x, t) {
-			var s = 1 - x;
-			return (x * x * x * x * x) * (1 - t) + (1 - s * s * s * s * s) * t;
+		smoothStep5: function (x) {
+			if (x < 0.5) {
+				x *= 2;
+				return x * x * x * x * x * 0.5;
+			}
+			x = 1 - (2 * x - 1);
+			return (1 - x * x * x * x * x) * 0.5 + 0.5;
 		},
 
 		sineStart: function (x) {
@@ -841,14 +848,14 @@
 			return 1/2 * (-Math.pow(2, -10 * (x - 1)) + 2);
 		},
 
-		backStart: function (x, t, s) {
+		backStart: function (x, s) {
 			if (s === undefined) {
 				s = 1.70158;
 			}
 			return x * x * ((s + 1) * x - s);
 		},
 
-		backStop: function (x, t, s) {
+		backStop: function (x, s) {
 			if (s === undefined) {
 				s = 1.70158;
 			}
@@ -856,7 +863,7 @@
 			return x * x * ((s + 1) * x + s) + 1;
 		},
 
-		backStep: function (x, t, s) {
+		backStep: function (x, s) {
 			if (s === undefined) {
 				s = 1.70158;
 			}
@@ -868,20 +875,20 @@
 		},
 
 		backStartS: function (s) {
-			return function (x, t) {
-				return easing.backStart(x, t, s);
+			return function (x) {
+				return easing.backStart(x, s);
 			}
 		},
 
 		backStopS: function (s) {
-			return function (x, t) {
-				return easing.backStop(x, t, s);
+			return function (x) {
+				return easing.backStop(x, s);
 			}
 		},
 
 		backStepS: function (s) {
-			return function (x, t) {
-				return easing.backStep(x, t, s);
+			return function (x) {
+				return easing.backStep(x, s);
 			}
 		},
 
@@ -906,8 +913,8 @@
 			return Math.pow(2, -10 * (x-1)) * Math.sin((x - 1.1125) * (2 * Math.PI) / 0.45) * .5 + 1.0;
 		},
 
-		bounceStart: function (x, t) {
-			return 1.0 - easing.bounceStop(1.0 - x, t);
+		bounceStart: function (x) {
+			return 1.0 - easing.bounceStop(1.0 - x);
 		},
 
 		bounceStop: function (x) {
@@ -926,10 +933,45 @@
 			}
 		},
 
-		bounceStep: function (x, t) {
-			if (x < 0.5) return easing.bounceStart(x * 2, t) * 0.5;
-			return easing.bounceStop(x * 2 - 1.0, t) * 0.5 + 0.5;
+		bounceStep: function (x) {
+			if (x < 0.5)
+				return easing.bounceStart(x * 2) * 0.5;
+			return easing.bounceStop(x * 2 - 1.0) * 0.5 + 0.5;
+		},
+
+		arch: function (x) {
+			return x * (1-x) * 4;
+		},
+
+		bell2: function (x) {
+			var s = x * (1-x) * 4;
+			return s * s;
+		},
+
+		bell3: function (x) {
+			var s = x * (1-x) * 4;
+			return s * s * s;
+		},
+
+		bell4: function (x) {
+			var s = x * (1-x) * 4;
+			return s * s * s * s;
+		},
+
+		bell5: function (x) {
+			var s = x * (1-x) * 4;
+			return s * s * s * s;
+		},
+
+		smoothStartArch2: function (x) {
+			return x * x * (1-x) * 27/4;
+		},
+
+		smoothStopArch2: function (x) {
+			return x * (1-x) * (1-x) * 27/4;
 		}
+
+
 	};
 
 	easing.easeInQuad = easing.smoothStart2;
@@ -967,6 +1009,9 @@
 	easing.easeInOutBack = easing.backStep;
 	easing.easeInOutElastic = easing.elasticStep;
 	easing.easeInOutBounce = easing.bounceStep;
+
+
+	//easing.arch2 = easing.scale(easing.flip(easing.linear));
 
 	animate.easing = easing;
 

@@ -4,6 +4,7 @@
     padding: 5px 10px;
     outline: none;
     margin: 5px;
+    vertical-align: top;
 
     -webkit-transition: all 0.30s ease-in-out;
     -moz-transition: all 0.30s ease-in-out;
@@ -52,6 +53,7 @@
 .visualizer .title {
     text-align: center;
     font-family: Arial, sans-serif;
-    font-size: 11px;
+    font-size: 12px;
+    margin-top: -7px;
     color: black;
 }
