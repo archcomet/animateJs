@@ -1,6 +1,3 @@
-
-// todo int vs float
-// todo bezier
 // todo docs & examples
 
 // i made a thing v1
@@ -421,6 +418,7 @@
 			if (!isNaN(value)) {
 				values.push(value);
 				indexes.push(i);
+
 			}
 		}
 
@@ -536,7 +534,7 @@
 
 			t = elapsed;
 			d = duration;
-			x = t/d;
+			x = t / d;
 
 			var j, jl, i, il, key, prop;
 			for (i = 0, il = propsArray.length; i < il; ++i) {
@@ -552,12 +550,11 @@
 					}
 
 					target[key] = prop.toPattern.join('');
-
 				}
 				else {
 					b = prop.from;
 					c = prop.change;
-					target[key] =  c * easingFn(x) + b;
+					target[key] = c * easingFn(x) + b;
 				}
 			}
 		};
@@ -695,12 +692,16 @@
 			}
 		},
 
-		stepwise: function(aFn, bFn) {
+		stepwise: function (aFn, bFn) {
 			return function (x) {
 				if (x < 0.5)
 					return aFn(2 * x) * 0.5;
 				return bFn(2 * x - 1) * 0.5 + 0.5;
 			}
+		},
+
+		bezier: function (c1x, c1y, c2x, c2y) {
+			return bezierEasing(c1x, c1y, c2x, c2y);
 		},
 
 		smoothStartN: function (n) {
@@ -726,6 +727,25 @@
 			}
 		},
 
+		backStartS: function (s) {
+			return function (x) {
+				return easing.backStart(x, s);
+			}
+		},
+
+		backStopS: function (s) {
+			return function (x) {
+				return easing.backStop(x, s);
+			}
+		},
+
+		backStepS: function (s) {
+			return function (x) {
+				return easing.backStep(x, s);
+			}
+		},
+
+
 		linear: function (x) {
 			return x;
 		},
@@ -743,7 +763,7 @@
 		},
 
 		smoothStart5: function (x) {
-			return x * x * x * x;
+			return x * x * x * x * x;
 		},
 
 		smoothStop2: function (x) {
@@ -778,7 +798,7 @@
 		smoothStep3: function (x) {
 			if (x < 0.5) {
 				x *= 2;
-				return x * x * x* 0.5;
+				return x * x * x * 0.5;
 			}
 			x = 1 - (2 * x - 1);
 			return (1 - x * x * x) * 0.5 + 0.5;
@@ -803,15 +823,15 @@
 		},
 
 		sineStart: function (x) {
-			return -Math.cos(x * (Math.PI/2)) + 1.0;
+			return -Math.cos(x * (Math.PI / 2)) + 1.0;
 		},
 
 		sineStop: function (x) {
-			return Math.sin(x * (Math.PI/2));
+			return Math.sin(x * (Math.PI / 2));
 		},
 
 		sineStep: function (x) {
-			return -1/2 * (Math.cos(Math.PI * x) - 1);
+			return -1 / 2 * (Math.cos(Math.PI * x) - 1);
 		},
 
 		circStart: function (x) {
@@ -825,13 +845,13 @@
 
 		circStep: function (x) {
 			x *= 2;
-			if (x < 1) return -1/2 * (Math.sqrt(1- x * x) - 1);
-			else return 1/2 * (Math.sqrt(1 - (x-2)*(x-2)) + 1);
+			if (x < 1) return -1 / 2 * (Math.sqrt(1 - x * x) - 1);
+			else return 1 / 2 * (Math.sqrt(1 - (x - 2) * (x - 2)) + 1);
 		},
 
 		expoStart: function (x) {
 			if (x === 0) return 0.0;
-			return Math.pow(2, 10 * (x-1));
+			return Math.pow(2, 10 * (x - 1));
 		},
 
 		expoStop: function (x) {
@@ -844,8 +864,8 @@
 			if (x === 1.0) return 1.0;
 			x *= 2;
 
-			if (x < 1.0) return 1/2 * Math.pow(2, 10 * (x - 1));
-			return 1/2 * (-Math.pow(2, -10 * (x - 1)) + 2);
+			if (x < 1.0) return 1 / 2 * Math.pow(2, 10 * (x - 1));
+			return 1 / 2 * (-Math.pow(2, -10 * (x - 1)) + 2);
 		},
 
 		backStart: function (x, s) {
@@ -874,24 +894,6 @@
 			return 1 / 2 * (x * x * ((s + 1) * x + s) + 2);
 		},
 
-		backStartS: function (s) {
-			return function (x) {
-				return easing.backStart(x, s);
-			}
-		},
-
-		backStopS: function (s) {
-			return function (x) {
-				return easing.backStop(x, s);
-			}
-		},
-
-		backStepS: function (s) {
-			return function (x) {
-				return easing.backStep(x, s);
-			}
-		},
-
 		elasticStart: function (x) {
 			if (x === 0) return 0.0;
 			if (x === 1) return 1.0;
@@ -909,8 +911,8 @@
 			x *= 2;
 			if (x === 0) return 0.0;
 			if (x === 2) return 1.0;
-			if (x < 1) return -.5 * (Math.pow(2, 10 * (x-1)) * Math.sin((x - 1.1125) * (2 * Math.PI) / 0.45));
-			return Math.pow(2, -10 * (x-1)) * Math.sin((x - 1.1125) * (2 * Math.PI) / 0.45) * .5 + 1.0;
+			if (x < 1) return -.5 * (Math.pow(2, 10 * (x - 1)) * Math.sin((x - 1.1125) * (2 * Math.PI) / 0.45));
+			return Math.pow(2, -10 * (x - 1)) * Math.sin((x - 1.1125) * (2 * Math.PI) / 0.45) * .5 + 1.0;
 		},
 
 		bounceStart: function (x) {
@@ -918,7 +920,7 @@
 		},
 
 		bounceStop: function (x) {
-			if (x < (1/2.75)) {
+			if (x < (1 / 2.75)) {
 				return 7.5625 * x * x;
 			}
 			else if (x < (2 / 2.75)) {
@@ -940,37 +942,36 @@
 		},
 
 		arch: function (x) {
-			return x * (1-x) * 4;
+			return x * (1 - x) * 4;
 		},
 
 		bell2: function (x) {
-			var s = x * (1-x) * 4;
+			var s = x * (1 - x) * 4;
 			return s * s;
 		},
 
 		bell3: function (x) {
-			var s = x * (1-x) * 4;
+			var s = x * (1 - x) * 4;
 			return s * s * s;
 		},
 
 		bell4: function (x) {
-			var s = x * (1-x) * 4;
+			var s = x * (1 - x) * 4;
 			return s * s * s * s;
 		},
 
 		bell5: function (x) {
-			var s = x * (1-x) * 4;
-			return s * s * s * s;
+			var s = x * (1 - x) * 4;
+			return s * s * s * s * s;
 		},
 
 		smoothStartArch2: function (x) {
-			return x * x * (1-x) * 27/4;
+			return x * x * (1 - x) * 27 / 4;
 		},
 
 		smoothStopArch2: function (x) {
-			return x * (1-x) * (1-x) * 27/4;
+			return x * (1 - x) * (1 - x) * 27 / 4;
 		}
-
 
 	};
 
@@ -995,7 +996,7 @@
 	easing.easeInBack = easing.backStart;
 	easing.easeInElastic = easing.elasticStart;
 	easing.easeInBounce = easing.bounceStart;
-	
+
 	easing.easeOutSine = easing.sineStop;
 	easing.easeOutCirc = easing.circStop;
 	easing.easeOutExpo = easing.expoStop;
@@ -1010,9 +1011,6 @@
 	easing.easeInOutElastic = easing.elasticStep;
 	easing.easeInOutBounce = easing.bounceStep;
 
-
-	//easing.arch2 = easing.scale(easing.flip(easing.linear));
-
 	animate.easing = easing;
 
 	window.animate = animate;
@@ -1022,5 +1020,155 @@
 			return animate;
 		});
 	}
+
+
+	/**
+	 *
+	 * BezierEasing - use bezier curve for transition easing function
+	 * by Gaëtan Renaudeau 2014 – MIT License
+	 *
+	 * Credits: is based on Firefox's nsSMILKeySpline.cpp
+	 * Usage:
+	 * var spline = BezierEasing(0.25, 0.1, 0.25, 1.0)
+	 * spline(x) => returns the easing value | x must be in [0, 1] range
+	 *
+	 */
+
+	var bezierEasing = (function () {
+
+		// These values are established by empiricism with tests (tradeoff: performance VS precision)
+		var NEWTON_ITERATIONS = 4;
+		var NEWTON_MIN_SLOPE = 0.001;
+		var SUBDIVISION_PRECISION = 0.0000001;
+		var SUBDIVISION_MAX_ITERATIONS = 10;
+
+		var kSplineTableSize = 11;
+		var kSampleStepSize = 1.0 / (kSplineTableSize - 1.0);
+
+		function a(aA1, aA2) {
+			return 1.0 - 3.0 * aA2 + 3.0 * aA1;
+		}
+
+		function b(aA1, aA2) {
+			return 3.0 * aA2 - 6.0 * aA1;
+		}
+
+		function c(aA1) {
+			return 3.0 * aA1;
+		}
+
+		// Returns x(t) given t, x1, and x2, or y(t) given t, y1, and y2.
+		function calcBezier(aT, aA1, aA2) {
+			return ((a(aA1, aA2) * aT + b(aA1, aA2)) * aT + c(aA1)) * aT;
+		}
+
+		// Returns dx/dt given t, x1, and x2, or dy/dt given t, y1, and y2.
+		function getSlope(aT, aA1, aA2) {
+			return 3.0 * a(aA1, aA2) * aT * aT + 2.0 * b(aA1, aA2) * aT + c(aA1);
+		}
+
+		function binarySubdivide(aX, aA, aB, mX1, mX2) {
+			var currentX, currentT, i = 0;
+			do {
+				currentT = aA + (aB - aA) / 2.0;
+				currentX = calcBezier(currentT, mX1, mX2) - aX;
+				if (currentX > 0.0) {
+					aB = currentT;
+				} else {
+					aA = currentT;
+				}
+			} while (Math.abs(currentX) > SUBDIVISION_PRECISION && ++i < SUBDIVISION_MAX_ITERATIONS);
+			return currentT;
+		}
+
+		function bezierEasing(mX1, mY1, mX2, mY2) {
+			// Validate arguments
+			if (arguments.length !== 4) {
+				throw new Error("BezierEasing requires 4 arguments.");
+			}
+			for (var i = 0; i < 4; ++i) {
+				if (typeof arguments[i] !== "number" || isNaN(arguments[i]) || !isFinite(arguments[i])) {
+					throw new Error("BezierEasing arguments should be integers.");
+				}
+			}
+			if (mX1 < 0 || mX1 > 1 || mX2 < 0 || mX2 > 1) {
+				throw new Error("BezierEasing x values must be in [0, 1] range.");
+			}
+
+			var mSampleValues = new Float32Array(kSplineTableSize);
+
+			function newtonRaphsonIterate(aX, aGuessT) {
+				for (var i = 0; i < NEWTON_ITERATIONS; ++i) {
+					var currentSlope = getSlope(aGuessT, mX1, mX2);
+					if (currentSlope === 0.0) return aGuessT;
+					var currentX = calcBezier(aGuessT, mX1, mX2) - aX;
+					aGuessT -= currentX / currentSlope;
+				}
+				return aGuessT;
+			}
+
+			function calcSampleValues() {
+				for (var i = 0; i < kSplineTableSize; ++i) {
+					mSampleValues[i] = calcBezier(i * kSampleStepSize, mX1, mX2);
+				}
+			}
+
+			function getTForX(aX) {
+				var intervalStart = 0.0;
+				var currentSample = 1;
+				var lastSample = kSplineTableSize - 1;
+
+				for (; currentSample != lastSample && mSampleValues[currentSample] <= aX; ++currentSample) {
+					intervalStart += kSampleStepSize;
+				}
+				--currentSample;
+
+				// Interpolate to provide an initial guess for t
+				var dist = (aX - mSampleValues[currentSample]) / (mSampleValues[currentSample + 1] - mSampleValues[currentSample]);
+				var guessForT = intervalStart + dist * kSampleStepSize;
+
+				var initialSlope = getSlope(guessForT, mX1, mX2);
+				if (initialSlope >= NEWTON_MIN_SLOPE) {
+					return newtonRaphsonIterate(aX, guessForT);
+				} else if (initialSlope === 0.0) {
+					return guessForT;
+				} else {
+					return binarySubdivide(aX, intervalStart, intervalStart + kSampleStepSize, mX1, mX2);
+				}
+			}
+
+			var _precomputed = false;
+
+			function precompute() {
+				_precomputed = true;
+				if (mX1 != mY1 || mX2 != mY2)
+					calcSampleValues();
+			}
+
+			var f = function (aX) {
+				if (!_precomputed) precompute();
+				if (mX1 === mY1 && mX2 === mY2) return aX; // linear
+				// Because JavaScript number are imprecise, we should guarantee the extremes are right.
+				if (aX === 0) return 0;
+				if (aX === 1) return 1;
+				return calcBezier(getTForX(aX), mY1, mY2);
+			};
+
+			f.getControlPoints = function () {
+				return [{x: mX1, y: mY1}, {x: mX2, y: mY2}];
+			};
+
+			var args = [mX1, mY1, mX2, mY2];
+			var css = "cubic-bezier(" + args + ")";
+			f.toCSS = function () {
+				return css;
+			};
+
+			return f;
+		}
+
+		return bezierEasing;
+
+	}());
 
 }());

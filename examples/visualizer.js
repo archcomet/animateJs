@@ -4,7 +4,7 @@
 	var topBottomPadding = 32;
 	var width = 145;
 	var height = 85;
-	var duration = 1500;
+	var duration = 1000;
 
 	var easing = animate.easing;
 
@@ -14,6 +14,7 @@
 		[
 			['linear', easing.linear, 'grey']
 		],
+		'Penner easing functions',
 		[
 			['smoothStart2<br>easeInQuad', easing.smoothStart2],
 			['smoothStart3<br>easeInCubic', easing.smoothStart3],
@@ -62,6 +63,13 @@
 			['elasticStep<br>easeInOutElastic', easing.elasticStep],
 			['bounceStep<br>easeInOutBounce', easing.bounceStep]
 		],
+		'Bezier easing functions',
+		[
+			['bezier(.17,.67,.83,.67)', easing.bezier(.17,.67,.83,.67)],
+			['bezier(0,.86,0,1.3)', easing.bezier(0,.86,0,1.3)],
+			['bezier(.47,1.24,1,-1.07)', easing.bezier(.47,1.24,1,-1.07)]
+		],
+		'Arched easing functions',
 		[
 			['arch', easing.arch],
 			['smoothStartArch2', easing.smoothStartArch2],
@@ -73,6 +81,7 @@
 			['bell4', easing.bell4],
 			['bell5', easing.bell5]
 		],
+		'Blended easing functions',
 		[
 			['mix(backStep, elasticStop, 0.2)', easing.mix(easing.backStep, easing.elasticStop, 0.2)],
 			['crossfade(stop3, start3)', easing.crossfade(easing.smoothStop3, easing.smoothStart3)],
@@ -240,17 +249,25 @@
 
 		var i, il, j, jl, div, row;
 		for (i = 0, il = visualizers.length; i < il; ++i) {
+
 			div = document.createElement('div');
+			div.classList.add('visualizerRow');
+
 			row = visualizers[i];
 
-			var fnArray = [];
-			for (j = 0, jl = row.length; j < jl; ++j) {
-				visualizer(div, row[j][0], row[j][1], jl === 1 ? 'grey' : colors[j]);
-				fnArray.push(row[j][1]);
+			if (Object.prototype.toString.call(row) === '[object String]') {
+				div.innerHTML = '<h2>' + row + '</h2>';
 			}
+			else {
+				var fnArray = [];
+				for (j = 0, jl = row.length; j < jl; ++j) {
+					visualizer(div, row[j][0], row[j][1], jl === 1 ? 'grey' : colors[j]);
+					fnArray.push(row[j][1]);
+				}
 
-			if (fnArray.length > 1) {
-				visualizer(div, 'composite', fnArray, colors);
+				if (fnArray.length > 1) {
+					visualizer(div, 'composite', fnArray, colors);
+				}
 			}
 
 			document.body.appendChild(div);
