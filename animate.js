@@ -1,7 +1,7 @@
 /**
  The MIT License (MIT)
 
- Copyright (c) 2013-2015 Michael Good
+ Copyright (c) 2014-2015 Michael Good
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -91,7 +91,7 @@
 			}
 		},
 
-		// Adds/removes tasks from tasksToRun 
+		// Adds/removes tasks from tasksToRun
 		updateSchedule: function () {
 
 			var task, idx,
@@ -316,8 +316,12 @@
 			task.setTimeStamp(0, 0);
 			task.step(timeStamp);
 
-			if (notifications) {
+			if (notifications && elapsed >= 0) {
 				task.state = STATE.PAUSED;
+			}
+
+			if (elapsed < 0) {
+				task.state = STATE.WAITING;
 			}
 
 			notifications = true;
@@ -615,7 +619,7 @@
 	animate.group = function (subordinate /* , ..., subordinateN */) {
 
 		var task = new Task(),
-			subordinates = Array.prototype.slice.call(arguments),
+			subordinates = Array.isArray(subordinate) ? subordinate :  Array.prototype.slice.call(arguments),
 			subordinateRemainders = new Float32Array(subordinates.length);
 
 		var i, n, maxDuration = 0;
