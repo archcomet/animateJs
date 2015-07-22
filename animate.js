@@ -153,19 +153,54 @@
 			iterationSetting = 0,
 			notifications = true,
 
+			/**
+			 * Promise task for controlling animations / sequences / groups
+			 *
+			 * Uses a fluent chaining API
+			 * @typedef promise
+			 * @type {{start: Function, stop: Function, jump: Function, delay: Function, repeat: Function, begin: Function, done: Function, progress: Function, iteration: Function, step: Function, getState: Function, getElapsed: Function, getDelay: Function, getDuration: Function}}
+			 */
+
 			promise = {
 
 				//  Controls
+
+				/**
+				 * Start the animation/group sequence
+				 *
+				 * - if the animation is paused, it resumes the animation
+				 * - if the animation is completed, it restarts the animation
+				 *
+				 * @param [timeStamp] - optional starts animation at this timestamp (in ms)
+				 * @returns {promise}
+				 */
 
 				start: function (timeStamp) {
 					task.updateStart(timeStamp);
 					return promise;
 				},
 
+				/**
+				 * Stop
+				 *
+				 * - If the animation is in progress, it pauses the animation
+				 *
+				 * @returns {promise}
+				 */
+
 				stop: function () {
 					task.updateStop();
 					return promise;
 				},
+
+				/**
+				 * Jumps animation to timestamp (in ms)
+				 *
+				 * Playing animations should continue to play, stopped/paused animations will stay stopped
+				 *
+				 * @param timeStamp
+				 * @returns {promise}
+				 */
 
 				jump: function (timeStamp) {
 					task.updateJump(timeStamp);
@@ -174,10 +209,25 @@
 
 				// Settings
 
+				/**
+				 * Sets delay (in ms) till animation begins after calling start.
+				 * Also controls delay between animations that are repeated.
+				 *
+				 * @param delayMs
+				 * @returns {promise}
+				 */
+
 				delay: function (delayMs) {
 					delaySetting = delayMs;
 					return promise;
 				},
+
+				/**
+				 * Sets the number of iterations for the animation.
+				 *
+				 * @param iterations
+				 * @returns {promise}
+				 */
 
 				repeat: function (iterations) {
 					iterationSetting = iterations;
@@ -186,20 +236,62 @@
 
 				// Filters
 
+				/**
+				 * Sets a begin callback listener
+				 *
+				 * Callback is executed when the animation begins (after delay time has elapsed if specified)
+				 * @param beginFilter
+				 * @returns {promise}
+				 */
+
 				begin: function (beginFilter) {
 					beginFilters.push(beginFilter);
 					return promise;
 				},
+
+				/**
+				 * Sets a done callback listener
+				 *
+				 * Callback is executed when the animation completes.
+				 * For repeating animations, this is after all iterations have completed
+				 *
+				 * @param doneFilter
+				 * @returns {promise}
+				 */
 
 				done: function (doneFilter) {
 					doneFilters.push(doneFilter);
 					return promise;
 				},
 
+				/**
+				 * Sets a progress callback
+				 *
+				 * Callback is executed each time the animated object is updated.
+				 * Will not be called during delay time.
+				 *
+				 * Good place to hook in render function.
+				 *
+				 * @param progressFilter
+				 * @returns {promise}
+				 */
+
 				progress: function (progressFilter) {
 					progressFilters.push(progressFilter);
 					return promise;
 				},
+
+				/**
+				 * Sets an iteration callback
+				 *
+				 * Callback is executed when an animation iterates.
+				 *
+				 * Current calls back at beginning of next animation
+				 * todo: need to double check against css api to make sure this timing is correct.
+				 *
+				 * @param iterationFilter
+				 * @returns {promise}
+				 */
 
 				iteration: function (iterationFilter) {
 					iterationFilters.push(iterationFilter);
@@ -208,23 +300,62 @@
 
 				// Step
 
+				/**
+				 * Steps the animation forward
+				 *
+				 * Note, should not be used if you are using start/stop APIs
+				 *
+				 * Does not return a promise. Returns a number indicating progress:
+				 *
+				 *  -1 indicates the animation is not yet finished
+				 *  0 or above indicate the animation is finished
+				 *  the number is the remainder of the dt for the step
+				 *
+				 *
+				 * @param dt
+				 */
+
 				step: function (dt) {
 					return task.step(dt);
 				},
 
 				// Getters
 
+				/**
+				 * Gets current animation state.
+				 *
+				 * @returns {string|*}
+				 */
+
 				getState: function () {
 					return task.state;
 				},
+
+				/**
+				 * Gets time elapsed
+				 * @returns {number}
+				 */
 
 				getElapsed: function () {
 					return elapsed;
 				},
 
+				/**
+				 * Gets the the current delay setting
+				 * @returns {number}
+				 */
+
 				getDelay: function () {
 					return delaySetting;
 				},
+
+
+				/**
+				 * Gets the total duration
+				 *
+				 * @param withDelay - includes delay in duration
+				 * @returns {number}
+				 */
 
 				getDuration: function (withDelay) {
 					return withDelay === true ? delaySetting + duration : duration;
@@ -496,6 +627,13 @@
 		}
 	}
 
+	/**
+	 * Creates animation object
+	 * Target is object being animated
+	 *
+	 * @param target
+	 * @returns {promise}
+	 */
 
 	function animate(target) {
 
@@ -574,6 +712,21 @@
 			}
 		};
 
+		/**
+		 * Set the starting values for the properties being animated.
+		 *
+		 * If this is called again, it replaces the previous from settings.
+		 *
+		 * If a property is specified in the to descriptor, but is not specified in the from descriptor,
+		 * then the objects starting property value will be used instead.
+		 *
+		 *
+		 * @param descriptor
+		 * @param [duration]
+		 * @param [doneFilter]
+		 * @returns {promise}
+		 */
+
 		promise.from = function (descriptor, duration, doneFilter) {
 			fromSetting = descriptor;
 
@@ -587,6 +740,21 @@
 
 			return promise;
 		};
+
+		/**
+		 * Sets the ending value for the properties being animated.
+		 *
+		 * If this is called again ,it replaces the previous to setting
+		 *
+		 *
+		 * If a property is specified in the from descriptor, but is not specified in the to descriptor,
+		 * then the objects starting property value will be used instead.
+		 *
+		 * @param descriptor
+		 * @param [duration]
+		 * @param [doneFilter]
+		 * @returns {promise}
+		 */
 
 		promise.to = function (descriptor, duration, doneFilter) {
 			toSetting = descriptor;
@@ -602,10 +770,27 @@
 			return promise;
 		};
 
+		/**
+		 * Sets the duration of the animation.
+		 *
+		 * @param duration
+		 * @returns {promise}
+		 */
+
 		promise.duration = function (duration) {
 			task.setDuration(duration);
 			return promise;
 		};
+
+		/**
+		 * Sets the easing function to be used.
+		 *
+		 * custom functions are allowed, but should normalized linear transformations.
+		 *
+		 *
+		 * @param easing
+		 * @returns {*}
+		 */
 
 		promise.using = function (easing) {
 			easingFn = easing;
@@ -615,6 +800,22 @@
 		return promise;
 	}
 
+	/**
+	 * Creates an animation group.
+	 *
+	 * Passed 1..n promise to be part of the group.
+	 *
+	 * Children can be animations, groups, or sequences.
+	 *
+	 * All children are started at the same time.
+	 *
+	 * Duration is the max duration of all children.
+	 *
+	 * Uses promise app.
+	 *
+	 * @param subordinate
+	 * @returns {promise}
+	 */
 
 	animate.group = function (subordinate /* , ..., subordinateN */) {
 
@@ -655,6 +856,24 @@
 		return task.promise;
 	};
 
+	/**
+	 * Creates an animation sequence.
+	 *
+	 * Passed 1..n promise to be part of the sequence.
+	 *
+	 * Children can be animations, groups, or sequences.
+	 *
+	 * All children are started sequentially.
+	 *
+	 * Duration is the sum of all children durations.
+	 *
+	 * Uses promise app.
+	 *
+	 * @param subordinate
+	 * @returns {promise}
+	 */
+
+
 	animate.sequence = function (subordinate /* , ..., subordinateN */) {
 
 		var task = new Task(),
@@ -692,6 +911,10 @@
 
 		return task.promise;
 	};
+
+	/**
+	 * Easing functions to be passed into the the using function.
+	 */
 
 	var easing = {
 
