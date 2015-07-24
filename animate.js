@@ -34,6 +34,8 @@
 		tasksToUpdate = [],
 		tasksToRun = [];
 
+	var schedulerEnabled = true;
+
 	var scheduler = {
 
 		// Marks a task for addition to the taskToRun array.
@@ -60,7 +62,7 @@
 
 		// Schedules the next animation frame
 		scheduleNext: function (timeStamp) {
-			if (!frameScheduled) {
+			if (!frameScheduled && schedulerEnabled) {
 				frameScheduled = true;
 				lastTimeStamp = timeStamp || performance.now();
 				window.requestAnimationFrame(scheduler.frame);
@@ -72,13 +74,19 @@
 
 			frameScheduled = false;
 
-			scheduler.updateSchedule();
-			scheduler.stepTasks(timeStamp - lastTimeStamp);
-			scheduler.updateSchedule();
+			if (schedulerEnabled) {
+				scheduler.step(timeStamp - lastTimeStamp);
 
-			if (tasksToRun.length > 0) {
-				scheduler.scheduleNext(timeStamp);
+				if (tasksToRun.length > 0) {
+					scheduler.scheduleNext(timeStamp);
+				}
 			}
+		},
+
+		step: function (dt) {
+			scheduler.updateSchedule();
+			scheduler.stepTasks(dt);
+			scheduler.updateSchedule();
 		},
 
 		// Steps each task that is running
@@ -799,6 +807,32 @@
 
 		return promise;
 	}
+
+	/**
+	 * Enables scheduler
+	 */
+
+	animate.start = function() {
+		schedulerEnabled = true;
+		scheduler.scheduleNext();
+	};
+
+	/**
+	 * Disables scheduler
+	 */
+
+	animate.stop = function() {
+		schedulerEnabled = false;
+	};
+
+	/**
+	 * Manually steps scheduled tasks.
+	 * @param dt
+	 */
+
+	animate.step = function(dt) {
+		scheduler.step(dt);
+	};
 
 	/**
 	 * Creates an animation group.
